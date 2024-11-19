@@ -10,7 +10,12 @@ from mimagen_pytorch.elucidated_imagen import ElucidatedImagen
 
 # config driven creation of imagen instances
 
-from mimagen_pytorch.configs import UnetConfig, ImagenConfig, ElucidatedImagenConfig, ImagenTrainerConfig
+from mimagen_pytorch.configs import (
+    UnetConfig,
+    ImagenConfig,
+    ElucidatedImagenConfig,
+    ImagenTrainerConfig,
+)
 
 # utils
 

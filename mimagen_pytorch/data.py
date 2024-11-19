@@ -19,20 +19,25 @@ USER_AGENT = get_datasets_user_agent()
 
 # helpers functions
 
+
 def exists(val):
     return val is not None
+
 
 def cycle(dl):
     while True:
         for data in dl:
             yield data
 
+
 def convert_image_to(img_type, image):
     if image.mode != img_type:
         return image.convert(img_type)
     return image
 
+
 # dataset, dataloader, collator
+
 
 class Collator:
     def __init__(self, image_size, url_label, text_label, image_label, name, channels):
@@ -42,13 +47,15 @@ class Collator:
         self.download = url_label is not None
         self.name = name
         self.channels = channels
-        self.transform = T.Compose([
-            T.Resize(image_size),
-            T.CenterCrop(image_size),
-            T.ToTensor(),
-        ])
-    def __call__(self, batch):
+        self.transform = T.Compose(
+            [
+                T.Resize(image_size),
+                T.CenterCrop(image_size),
+                T.ToTensor(),
+            ]
+        )
 
+    def __call__(self, batch):
         texts = []
         images = []
         for item in batch:
@@ -67,7 +74,7 @@ class Collator:
 
         if len(texts) == 0:
             return None
-        
+
         texts = pad_sequence(texts, True)
 
         newbatch = []
@@ -84,33 +91,40 @@ class Collator:
                 headers={"user-agent": USER_AGENT},
             )
             with urllib.request.urlopen(request, timeout=timeout) as req:
-                image = Image.open(io.BytesIO(req.read())).convert('RGB')
+                image = Image.open(io.BytesIO(req.read())).convert("RGB")
         except Exception:
             image = None
         return image
+
 
 class Dataset(Dataset):
     def __init__(
         self,
         folder,
         image_size,
-        exts = ['jpg', 'jpeg', 'png', 'tiff'],
-        convert_image_to_type = None
+        exts=["jpg", "jpeg", "png", "tiff"],
+        convert_image_to_type=None,
     ):
         super().__init__()
         self.folder = folder
         self.image_size = image_size
-        self.paths = [p for ext in exts for p in Path(f'{folder}').glob(f'**/*.{ext}')]
+        self.paths = [p for ext in exts for p in Path(f"{folder}").glob(f"**/*.{ext}")]
 
-        convert_fn = partial(convert_image_to, convert_image_to_type) if exists(convert_image_to_type) else nn.Identity()
+        convert_fn = (
+            partial(convert_image_to, convert_image_to_type)
+            if exists(convert_image_to_type)
+            else nn.Identity()
+        )
 
-        self.transform = T.Compose([
-            T.Lambda(convert_fn),
-            T.Resize(image_size),
-            T.RandomHorizontalFlip(),
-            T.CenterCrop(image_size),
-            T.ToTensor()
-        ])
+        self.transform = T.Compose(
+            [
+                T.Lambda(convert_fn),
+                T.Resize(image_size),
+                T.RandomHorizontalFlip(),
+                T.CenterCrop(image_size),
+                T.ToTensor(),
+            ]
+        )
 
     def __len__(self):
         return len(self.paths)
@@ -120,17 +134,12 @@ class Dataset(Dataset):
         img = Image.open(path)
         return self.transform(img)
 
+
 def get_images_dataloader(
-    folder,
-    *,
-    batch_size,
-    image_size,
-    shuffle = True,
-    cycle_dl = False,
-    pin_memory = True
+    folder, *, batch_size, image_size, shuffle=True, cycle_dl=False, pin_memory=True
 ):
     ds = Dataset(folder, image_size)
-    dl = DataLoader(ds, batch_size = batch_size, shuffle = shuffle, pin_memory = pin_memory)
+    dl = DataLoader(ds, batch_size=batch_size, shuffle=shuffle, pin_memory=pin_memory)
 
     if cycle_dl:
         dl = cycle(dl)
