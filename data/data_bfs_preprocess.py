@@ -15,6 +15,8 @@ class bfs_dataset(Dataset):
         start_n=0,
         n_span=510,
     ):
+        print(11111)
+        print(f"{n_span = } || {trajec_max_len = }")
         assert n_span > trajec_max_len
         self.start_n = start_n
         self.n_span = n_span

@@ -250,6 +250,85 @@ def test_plot_eval(args, args_sample, model, data_loader, loss_func, Nt, down_sa
                         plt.close(fig)
 
 
+def test_plot_eval_truth_only(args, data_loader, Nt, down_sampler):
+    try:
+        os.makedirs(args.experiment_path + "/contour")
+    except:
+        pass
+    contour_dir = args.experiment_path + "/contour"
+    print("Total iterations:", len(data_loader))
+
+    for iteration, batch in tqdm(enumerate(data_loader)):
+        batch = batch.to(args.device).float()
+        b_size = batch.shape[0]
+        num_time = batch.shape[1]
+        num_velocity = 2
+        batch = batch.reshape([b_size * num_time, num_velocity, 512, 512])
+        batch_coarse = down_sampler(batch).reshape(
+            [b_size, num_time, num_velocity, args.coarse_dim[0], args.coarse_dim[1]]
+        )
+        batch_coarse_flatten = batch_coarse.reshape(
+            [
+                b_size,
+                num_time,
+                num_velocity * args.coarse_dim[0] * args.coarse_dim[1],
+            ]
+        )
+
+        for i in tqdm(range(b_size)):
+            truth = batch_coarse_flatten[i : i + 1, :Nt, :]
+            # Reshape truth to spatial dimensions
+            truth = truth.reshape(
+                [
+                    truth.shape[0],
+                    truth.shape[1],
+                    num_velocity,
+                    args.coarse_dim[0],
+                    args.coarse_dim[1],
+                ]
+            )
+
+            seq_name = "batch" + str(iteration) + "sample" + str(i)
+            try:
+                os.makedirs(contour_dir + "/" + seq_name)
+            except:
+                pass
+            for d in tqdm(range(num_velocity + 1)):
+                try:
+                    os.makedirs(contour_dir + "/" + seq_name + "/" + str(d))
+                except:
+                    pass
+                sub_seq_name = contour_dir + "/" + seq_name + "/" + str(d)
+                for t in tqdm(range(Nt)):
+                    if d == 2:
+                        X_AR = np.sqrt(
+                            truth[0, t, 0, :, :].cpu().numpy() ** 2
+                            + truth[0, t, 1, :, :].cpu().numpy() ** 2
+                        )
+                    else:
+                        X_AR = truth[0, t, d, :, :].cpu().numpy()
+
+                    fig, ax = plt.subplots()
+                    norm = matplotlib.colors.Normalize(vmin=X_AR.min(), vmax=X_AR.max())
+                    im = ax.imshow(
+                        X_AR[:, :],
+                        extent=[0, 10, 0, 2],
+                        cmap="jet",
+                        interpolation="bicubic",
+                        norm=norm,
+                    )
+                    ax.set_title("Label")
+                    ax.set_ylabel("y")
+                    ax.set_xlabel("x")
+                    fig.colorbar(im, orientation="horizontal", ax=ax)
+                    fig.savefig(
+                        sub_seq_name + "/time" + str(t) + ".png",
+                        bbox_inches="tight",
+                        dpi=500,
+                    )
+                    plt.close(fig)
+
+
 """
 start test
 """

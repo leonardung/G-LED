@@ -1,13 +1,12 @@
 import pdb
 import torch
 from tqdm import tqdm
-from test_seq import test_epoch
+from train_test_seq.test_seq import test_epoch
 import os
 import time
 import sys
 
-sys.path.insert(0, "./util")
-from utils import save_model
+from util.utils import save_model
 
 
 def train_seq_shift(

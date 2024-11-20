@@ -9,8 +9,7 @@ import matplotlib
 import pickle
 import os
 
-sys.path.insert(0, "./util")
-from utils import save_loss
+from util.utils import save_loss
 
 
 def test_final_overall(

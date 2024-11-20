@@ -7,7 +7,7 @@ import pdb
 
 # Internal package
 from util.utils import read_args_txt
-from train_test_seq.test_seq import eval_seq_overall
+from train_test_seq.test_seq import eval_seq_overall, test_plot_eval_truth_only
 from data.data_bfs_preprocess import bfs_dataset
 from transformer.sequentialModel import SequentialModel as transformer
 
@@ -20,11 +20,11 @@ class Args_seq_sample:
 		"""
         self.parser.add_argument(
             "--train_args_txt",
-            default="output/bfs_les_2024_11_20_13_01_17/logging/args.txt",
+            default="output/bfs_les_2024_11_20_10_49_56/logging/args.txt",
             help="load the args_train",
         )
         self.parser.add_argument(
-            "--Nt_read", default=14, help="Which Nt model we need to read"
+            "--Nt_read", default=30, help="Which Nt model we need to read"
         )
 
         """
@@ -32,15 +32,15 @@ class Args_seq_sample:
 		"""
         self.parser.add_argument(
             "--trajec_max_len",
-            default=41,
+            default=500,
             help="max seq_length (per seq) to test the model",
         )
         self.parser.add_argument(
-            "--start_n", default=600, help="the starting step of the data"
+            "--start_n", default=0, help="the starting step of the data"
         )
         self.parser.add_argument(
             "--n_span",
-            default=42,
+            default=1000,
             help="the total step of the data from the staring step",
         )
 
@@ -48,7 +48,7 @@ class Args_seq_sample:
 		for testing
 		"""
         self.parser.add_argument(
-            "--test_Nt", default=40, help="The length of forward propgatate"
+            "--test_Nt", default=500, help="The length of forward propgatate"
         )
         self.parser.add_argument(
             "--batch_size",
@@ -93,20 +93,6 @@ if __name__ == "__main__":
     )
 
     """
-	Create and Load model
-	"""
-    model = transformer(args_train).to(args_sample.device).float()
-    print("Number of parameters: {}".format(model._num_parameters()))
-    model.load_state_dict(
-        torch.load(
-            args_train.current_model_save_path
-            + "model_epoch_"
-            + str(args_sample.Nt_read),
-            map_location=torch.device(args_sample.device),
-        )
-    )
-
-    """
 	create loss function
 	"""
     loss_func = torch.nn.MSELoss()
@@ -114,10 +100,19 @@ if __name__ == "__main__":
     """
 	Eval
 	"""
-    eval_seq_overall(
-        args_train=args_train,
-        args_sample=args_sample,
-        model=model,
-        data_loader=data_loader,
-        loss_func=loss_func,
+    down_sampler = torch.nn.Upsample(
+        size=args_train.coarse_dim, mode=args_train.coarse_mode
     )
+    test_plot_eval_truth_only(
+        args=args_train,
+        data_loader=data_loader,
+        Nt=args_sample.test_Nt,
+        down_sampler=down_sampler,
+    )
+    # eval_seq_overall(
+    #     args_train=args_train,
+    #     args_sample=args_sample,
+    #     model=model,
+    #     data_loader=data_loader,
+    #     loss_func=loss_func,
+    # )

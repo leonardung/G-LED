@@ -5,8 +5,7 @@ import sys
 import os
 import numpy as np
 
-sys.path.insert(0, "./util")
-from utils import save_loss
+from util.utils import save_loss
 
 
 def train_diff(diff_args, seq_args, trainer, data_loader):

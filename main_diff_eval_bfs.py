@@ -9,18 +9,11 @@ from mimagen_pytorch import Unet3D, ElucidatedImagen, ImagenTrainer
 from main_seq_bfs import Args as Args_seq
 from main_diff_bfs import Args as Args_diff
 
-sys.path.insert(0, "./util")
-from utils import read_args_txt
-
-sys.path.insert(0, "./data")
-from data_bfs_preprocess import bfs_dataset
-
-sys.path.insert(0, "./transformer")
-from sequentialModel import SequentialModel as transformer
-
-sys.path.insert(0, "./train_test_spatial")
-from test_diff import test_final_overall
-from test_diff_ensamble import test_final_overall_ensamble
+from util.utils import read_args_txt
+from data.data_bfs_preprocess import bfs_dataset
+from transformer.sequentialModel import SequentialModel as transformer
+from train_test_spatial.test_diff import test_final_overall
+from train_test_spatial.test_diff_ensamble import test_final_overall_ensamble
 
 
 class Args_final_eval:

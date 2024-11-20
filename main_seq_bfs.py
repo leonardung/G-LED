@@ -8,20 +8,13 @@ import numpy as np
 import json
 import torch
 from torch.utils.data import DataLoader
+import time
 
 # Internal package
-sys.path.insert(0, "./util")
-from utils import save_args
-
-sys.path.insert(0, "./data")
-from data_bfs_preprocess import bfs_dataset
-
-sys.path.insert(0, "./transformer")
-from sequentialModel import SequentialModel as transformer
-
-sys.path.insert(0, "./train_test_seq")
-from train_seq import train_seq_shift
-import time
+from util.utils import save_args
+from data.data_bfs_preprocess import bfs_dataset
+from transformer.sequentialModel import SequentialModel as transformer
+from train_test_seq.train_seq import train_seq_shift
 
 
 class Args:
@@ -33,7 +26,7 @@ class Args:
         self.parser.add_argument("--dataset", default="bfs_les", help="name it")
         self.parser.add_argument(
             "--data_location",
-            default=["./data/data0.npy", "./data/data1.npy"],
+            default=["./data/data0_sample16.npy", "./data/data1_sample16.npy"],
             help="the relative or abosolute data.npy file",
         )
         self.parser.add_argument(
@@ -46,21 +39,21 @@ class Args:
         )
         self.parser.add_argument(
             "--n_span",
-            default=8000,
+            default=500,
             help="the total step of the data from the staring step",
         )
 
         self.parser.add_argument(
             "--trajec_max_len_valid",
-            default=450,
+            default=41,
             help="max seq_length (per seq) to valid the model",
         )
         self.parser.add_argument(
-            "--start_n_valid", default=8000, help="the starting step of the data"
+            "--start_n_valid", default=400, help="the starting step of the data"
         )
         self.parser.add_argument(
             "--n_span_valid",
-            default=500,
+            default=100,
             help="the total step of the data from the staring step",
         )
 
@@ -80,7 +73,7 @@ class Args:
             "--n_ctx", default=40, help="number steps transformer can look back at"
         )
         self.parser.add_argument(
-            "--n_embd", default=2048, help="The hidden state dim transformer to predict"
+            "--n_embd", default=1024, help="The hidden state dim transformer to predict"
         )
         self.parser.add_argument("--n_head", default=4, help="number of head per layer")
         self.parser.add_argument("--embd_pdrop", default=0.0, help="T.B.D")
@@ -116,8 +109,8 @@ class Args:
             help="how many seqs you want to train together per valid",
         )
         self.parser.add_argument("--shuffle", default=True, help="shuffle the batch")
-        self.parser.add_argument("--device", default="cuda:1")
-        self.parser.add_argument("--epoch_num", default=10000, help="epoch_num")
+        self.parser.add_argument("--device", default="cuda")
+        self.parser.add_argument("--epoch_num", default=150, help="epoch_num")
         self.parser.add_argument("--learning_rate", default=1e-4, help="learning rate")
         self.parser.add_argument(
             "--gamma", default=0.99083194489, help="learning rate decay"
@@ -125,7 +118,7 @@ class Args:
 
         self.parser.add_argument(
             "--coarse_dim",
-            default=[32, 32],
+            default=[16, 32],
             help="the coarse shape (hidden) of transformer",
         )
         self.parser.add_argument(
